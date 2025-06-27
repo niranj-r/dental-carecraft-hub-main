@@ -31,7 +31,7 @@ The product enables authorized users to manage organizational entities (admin, d
 ## 2. Overall Description
 
 ### 2.1 Product Perspective
-A responsive, multi-tenant web-based application with a React frontend and Flask backend (single app.py). APIs expose core functionality, allowing for future integrations. The system includes WebSocket (or polling) for real-time updates and supports secure cloud deployment.
+A responsive, multi-tenant web-based application with a React frontend and Flask backend (single app.py). APIs expose core functionality, allowing for future integrations.
 
 ### 2.2 User Classes & Characteristics
 
@@ -50,15 +50,13 @@ A responsive, multi-tenant web-based application with a React frontend and Flask
 - Queue Tracking (WebSocket or polling)
 - Pre-Visit Medical Forms
 - Treatment Note Recording
-- Razorpay/Stripe Payment Integration
-- Gamified Dental Health Score
+- Razorpay Payment Integration
 - Admin Analytics & Report Export
 
 ### 2.4 Assumptions & Dependencies
 - Users will access the platform via a web browser.
-- Backend hosted on cloud with CORS & HTTPS enabled.
-- Payment gateways (Razorpay/Stripe) operate in test/live mode.
-- WebSocket may be replaced by polling based on deployment constraints.
+- Backend hosted with CORS & HTTPS enabled.
+- Payment gateways (Razorpay) operate in test/live mode.
 
 ## 3. Functional Requirements
 
