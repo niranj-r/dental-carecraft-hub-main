@@ -19,18 +19,54 @@ const BookAppointment = () => {
   const [symptoms, setSymptoms] = useState([]);
   const [notes, setNotes] = useState('');
   const [doctors, setDoctors] = useState([]);
-  const [availableTimes, setAvailableTimes] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+
+  const generateTimeSlots = () => {
+    const slots = [];
+    // General slots: 9:00 to 17:00
+    for (let h = 9; h < 17; h++) {
+      slots.push(`${h.toString().padStart(2, '0')}:00`);
+      slots.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+    // Reserved slots: 17:00 to 19:00
+    for (let h = 17; h < 19; h++) {
+      slots.push(`${h.toString().padStart(2, '0')}:00-reserved`);
+      slots.push(`${h.toString().padStart(2, '0')}:30-reserved`);
+    }
+    return slots;
+  };
 
   useEffect(() => {
+    // Fetch doctors
+    axios.get('http://localhost:5000/api/doctors')
+      .then(res => {
+        setDoctors(res.data.map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          specialty: doc.specialty || '',
+          contact: doc.contact || ''
+        })));
+      })
+      .catch(err => console.error(err));
+
+    // Fetch appointments
     axios.get('http://localhost:5000/api/appointments')
       .then(res => {
-        // Extract unique doctors and times from appointments
-        const docs = Array.from(new Set(res.data.map(a => a.doctor)));
-        setDoctors(docs.map(name => ({ id: name, name, specialty: '' })));
-        setAvailableTimes(Array.from(new Set(res.data.map(a => a.time))));
+        setAppointments(res.data);
       })
       .catch(err => console.error(err));
   }, []);
+
+  const getBookedTimes = () => {
+    if (!selectedDate || !selectedDoctor) return [];
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    return appointments
+      .filter(a => a.date === dateStr && a.doctor === selectedDoctor)
+      .map(a => a.time);
+  };
+
+  const allSlots = generateTimeSlots();
+  const bookedTimes = getBookedTimes();
 
   const handleSubmit = () => {
     toast.success("Appointment booked successfully! 🎉");
@@ -97,16 +133,22 @@ const BookAppointment = () => {
               <div>
                 <Label className="text-base font-medium mb-4 block">Available Times</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {availableTimes.map((time) => (
-                    <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      className="h-12"
-                      onClick={() => setSelectedTime(time)}
-                    >
-                      {time}
-                    </Button>
-                  ))}
+                  {allSlots.map((slot) => {
+                    const isReserved = slot.includes('-reserved');
+                    const time = slot.replace('-reserved', '');
+                    const isBooked = bookedTimes.includes(time);
+                    return (
+                      <Button
+                        key={slot}
+                        variant={selectedTime === time ? "default" : isReserved ? "outline" : "outline"}
+                        className={`h-12 ${isReserved ? 'border-yellow-500 text-yellow-700 cursor-not-allowed opacity-60' : ''}`}
+                        onClick={() => !isReserved && !isBooked && setSelectedTime(time)}
+                        disabled={isReserved || isBooked}
+                      >
+                        {time} {isReserved ? '(Reserved)' : isBooked ? '(Booked)' : ''}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
