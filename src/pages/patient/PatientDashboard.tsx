@@ -1,32 +1,37 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, CreditCard, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const PatientDashboard = () => {
-  const upcomingAppointments = [
-    {
-      id: 1,
-      date: "Tomorrow",
-      time: "10:30 AM",
-      doctor: "Dr. Smith",
-      type: "Regular Checkup"
-    },
-    {
-      id: 2,
-      date: "March 15",
-      time: "2:00 PM", 
-      doctor: "Dr. Johnson",
-      type: "Teeth Cleaning"
-    }
-  ];
+  const [appointments, setAppointments] = useState([]);
+  const [patient, setPatient] = useState<any>(null);
+  const [payments, setPayments] = useState([]);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.patient_id) return;
+    axios.get('http://localhost:5000/api/patients/' + user.patient_id)
+      .then(res => setPatient(res.data))
+      .catch(() => setPatient(null));
+    axios.get('http://localhost:5000/api/appointments?patient_id=' + user.patient_id)
+      .then(res => setAppointments(res.data))
+      .catch(() => setAppointments([]));
+    axios.get('http://localhost:5000/api/payments?patient_id=' + user.patient_id)
+      .then(res => setPayments(res.data))
+      .catch(() => setPayments([]));
+  }, []);
+
+  const nextAppointment = appointments.find(a => a.status === 'scheduled' || a.status === 'pending');
+  const pendingPayments = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+  const lastVisit = appointments.filter(a => a.status === 'completed').sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
 
   const quickStats = [
-    { label: "Next Appointment", value: "Tomorrow 10:30 AM", icon: Calendar, color: "text-blue-600" },
-    { label: "Pending Payments", value: "₹850", icon: CreditCard, color: "text-orange-600" },
-    { label: "Last Visit", value: "2 weeks ago", icon: Clock, color: "text-green-600" },
+    { label: 'Next Appointment', value: nextAppointment ? `${nextAppointment.date} ${nextAppointment.time}` : 'None', icon: Calendar, color: 'text-blue-600' },
+    { label: 'Pending Payments', value: `₹${pendingPayments}`, icon: CreditCard, color: 'text-orange-600' },
+    { label: 'Last Visit', value: lastVisit ? `${lastVisit.date}` : 'N/A', icon: Clock, color: 'text-green-600' },
   ];
 
   return (
@@ -34,7 +39,7 @@ const PatientDashboard = () => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Hi Riya! Ready to take care of that smile today? 😊
+          Hi {patient?.name || 'Patient'}! Ready to take care of that smile today? 😊
         </h1>
         <p className="text-gray-600">
           Your dental health journey continues here. Book appointments, view history, and stay connected with your care team.
@@ -76,11 +81,11 @@ const PatientDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {upcomingAppointments.map((appointment) => (
+            {appointments.filter(a => a.status === 'scheduled' || a.status === 'pending').map((appointment) => (
               <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900">{appointment.type}</p>
-                  <p className="text-sm text-gray-600">with {appointment.doctor}</p>
+                  <p className="font-medium text-gray-900">{appointment.type || 'Appointment'}</p>
+                  <p className="text-sm text-gray-600">with Dr. {appointment.doctor_name || appointment.doctor_id}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">{appointment.date}</p>
