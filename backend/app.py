@@ -84,7 +84,11 @@ def appointments():
     try:
         with conn.cursor() as cursor:
             if request.method == 'GET':
-                cursor.execute('SELECT * FROM appointments')
+                patient_id = request.args.get('patient_id')
+                if patient_id:
+                    cursor.execute('SELECT * FROM appointments WHERE patient_id=%s', (patient_id,))
+                else:
+                    cursor.execute('SELECT * FROM appointments')
                 results = cursor.fetchall()
                 print('Fetched appointments:', results)
                 for row in results:
@@ -122,7 +126,11 @@ def payments():
     try:
         with conn.cursor() as cursor:
             if request.method == 'GET':
-                cursor.execute('SELECT * FROM payments')
+                patient_id = request.args.get('patient_id')
+                if patient_id:
+                    cursor.execute('SELECT * FROM payments WHERE patient_id=%s', (patient_id,))
+                else:
+                    cursor.execute('SELECT * FROM payments')
                 return jsonify(cursor.fetchall())
             elif request.method == 'POST':
                 data = request.get_json()
@@ -312,6 +320,21 @@ def init_db():
         return jsonify({'status': 'initialized'}), 201
     except Exception as e:
         conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/patients/<int:patient_id>', methods=['GET'])
+def get_patient(patient_id):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM patients WHERE id=%s', (patient_id,))
+            patient = cursor.fetchone()
+            if not patient:
+                return jsonify({'error': 'Patient not found'}), 404
+            return jsonify(patient)
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
