@@ -11,7 +11,7 @@ def get_db_connection():
     return pymysql.connect(
         host='localhost',
         user='root',
-        password='root123*',
+        password='rachu@2005',
         db='dental_care',
         cursorclass=DictCursor
     )
