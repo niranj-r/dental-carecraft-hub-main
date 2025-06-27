@@ -66,7 +66,6 @@ def login():
             user = cursor.fetchone()
             if not user:
                 return jsonify({'error': 'Invalid credentials'}), 401
-            # Return user info except password
             user.pop('password', None)
             return jsonify(user)
     except Exception as e:
@@ -180,12 +179,12 @@ def health():
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data or 'role' not in data or 'name' not in data or 'contact' not in data:
+    required = ['username', 'password', 'role', 'name', 'contact']
+    if not data or not all(k in data and data[k] for k in required):
         return jsonify({'error': 'Missing required fields'}), 400
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            # Check if username exists
             cursor.execute('SELECT id FROM users WHERE username=%s', (data['username'],))
             if cursor.fetchone():
                 return jsonify({'error': 'Username already exists'}), 400
