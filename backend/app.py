@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import pymysql
 from pymysql.cursors import DictCursor
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:8080", "http://192.168.137.160:8080", "*"]}})
 
 def get_db_connection():
     return pymysql.connect(
@@ -196,6 +196,113 @@ def register():
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
+
+@app.route('/api/init-db', methods=['POST'])
+def init_db():
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Create tables
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS doctors (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100),
+                    specialty VARCHAR(100),
+                    contact VARCHAR(50)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS patients (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100),
+                    age INT,
+                    gender VARCHAR(10),
+                    contact VARCHAR(50)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS appointments (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    patient_id INT,
+                    doctor_id INT,
+                    date DATE,
+                    time TIME,
+                    status VARCHAR(20),
+                    FOREIGN KEY (patient_id) REFERENCES patients(id),
+                    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS payments (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    patient_id INT,
+                    amount DECIMAL(10,2),
+                    date DATE,
+                    status VARCHAR(20),
+                    FOREIGN KEY (patient_id) REFERENCES patients(id)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    patient_id INT,
+                    message TEXT,
+                    date DATETIME,
+                    is_read BOOLEAN,
+                    FOREIGN KEY (patient_id) REFERENCES patients(id)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) UNIQUE,
+                    password VARCHAR(255),
+                    role ENUM('patient', 'doctor'),
+                    patient_id INT,
+                    doctor_id INT,
+                    FOREIGN KEY (patient_id) REFERENCES patients(id),
+                    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+                )
+            ''')
+            # Seed doctors
+            cursor.execute("INSERT IGNORE INTO doctors (id, name, specialty, contact) VALUES (1, 'Dr. Sarah Smith', 'General Dentistry', '+1 234-567-8901')")
+            cursor.execute("INSERT IGNORE INTO doctors (id, name, specialty, contact) VALUES (2, 'Dr. Mike Johnson', 'Orthodontics', '+1 234-567-8902')")
+            cursor.execute("INSERT IGNORE INTO doctors (id, name, specialty, contact) VALUES (3, 'Dr. Lisa Brown', 'Oral Surgery', '+1 234-567-8903')")
+            # Seed patients
+            cursor.execute("INSERT IGNORE INTO patients (id, name, age, gender, contact) VALUES (1, 'Riya Sharma', 28, 'Female', '+1 234-567-8904')")
+            cursor.execute("INSERT IGNORE INTO patients (id, name, age, gender, contact) VALUES (2, 'John Doe', 35, 'Male', '+1 234-567-8905')")
+            cursor.execute("INSERT IGNORE INTO patients (id, name, age, gender, contact) VALUES (3, 'Sarah Wilson', 42, 'Female', '+1 234-567-8906')")
+            # Seed users
+            cursor.execute("INSERT IGNORE INTO users (username, password, role, patient_id, doctor_id) VALUES ('riya', 'password123', 'patient', 1, NULL)")
+            cursor.execute("INSERT IGNORE INTO users (username, password, role, patient_id, doctor_id) VALUES ('john', 'password123', 'patient', 2, NULL)")
+            cursor.execute("INSERT IGNORE INTO users (username, password, role, patient_id, doctor_id) VALUES ('sarah', 'password123', 'patient', 3, NULL)")
+            cursor.execute("INSERT IGNORE INTO users (username, password, role, patient_id, doctor_id) VALUES ('drsmith', 'password123', 'doctor', NULL, 1)")
+            cursor.execute("INSERT IGNORE INTO users (username, password, role, patient_id, doctor_id) VALUES ('drjohnson', 'password123', 'doctor', NULL, 2)")
+            cursor.execute("INSERT IGNORE INTO users (username, password, role, patient_id, doctor_id) VALUES ('drbrown', 'password123', 'doctor', NULL, 3)")
+            # Seed appointments
+            cursor.execute("INSERT IGNORE INTO appointments (id, patient_id, doctor_id, date, time, status) VALUES (1, 1, 1, '2024-07-01', '09:00:00', 'scheduled')")
+            cursor.execute("INSERT IGNORE INTO appointments (id, patient_id, doctor_id, date, time, status) VALUES (2, 2, 2, '2024-07-01', '10:00:00', 'completed')")
+            cursor.execute("INSERT IGNORE INTO appointments (id, patient_id, doctor_id, date, time, status) VALUES (3, 3, 3, '2024-07-01', '11:00:00', 'pending')")
+            # Seed payments
+            cursor.execute("INSERT IGNORE INTO payments (id, patient_id, amount, date, status) VALUES (1, 1, 1500, '2024-07-01', 'paid')")
+            cursor.execute("INSERT IGNORE INTO payments (id, patient_id, amount, date, status) VALUES (2, 2, 2000, '2024-07-01', 'paid')")
+            cursor.execute("INSERT IGNORE INTO payments (id, patient_id, amount, date, status) VALUES (3, 3, 800, '2024-07-01', 'pending')")
+            # Seed notifications
+            cursor.execute("INSERT IGNORE INTO notifications (id, patient_id, message, date, is_read) VALUES (1, 1, 'Your appointment is scheduled for 9:00 AM.', NOW(), 0)")
+            cursor.execute("INSERT IGNORE INTO notifications (id, patient_id, message, date, is_read) VALUES (2, 2, 'Payment received for your last visit.', NOW(), 1)")
+            cursor.execute("INSERT IGNORE INTO notifications (id, patient_id, message, date, is_read) VALUES (3, 3, 'Your next appointment is pending.', NOW(), 0)")
+            conn.commit()
+        return jsonify({'status': 'initialized'}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.errorhandler(422)
+def handle_unprocessable_entity(err):
+    response = {"error": "Unprocessable Entity", "message": str(err)}
+    return make_response(jsonify(response), 422)
 
 if __name__ == '__main__':
     app.run(debug=True) 
