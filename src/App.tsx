@@ -17,6 +17,7 @@ import PatientRecords from "./pages/doctor/PatientRecords";
 import TreatmentNotes from "./pages/doctor/TreatmentNotes";
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Messages from "./pages/patient/Messages";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="book" element={<BookAppointment />} />
             <Route path="history" element={<AppointmentHistory />} />
             <Route path="payments" element={<PaymentsPage />} />
+            <Route path="messages" element={<Messages />} />
           </Route>
           <Route path="/doctor" element={<DoctorLayout />}>
             <Route index element={<DoctorDashboard />} />
@@ -44,6 +46,10 @@ const App = () => (
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
+          
+          {/* Catch-all route for 404 Not Found */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
