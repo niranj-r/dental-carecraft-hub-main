@@ -1,156 +1,146 @@
-# Dental Management System - Software Requirements Specification (SRS)
+# CareCraft - Software Requirements Specification (SRS)
 
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document outlines the software requirements for the Dental Management System — a full-stack AI-powered web application designed to streamline dental clinic operations, including appointment scheduling, patient triage, queue tracking, treatment documentation, and billing.
+Specify the functional and non-functional requirements for CareCraft, a full-stack web application designed to streamline operations in dental clinics through AI-assisted appointment management, patient intake, treatment recording, billing, and analytics.
 
 ### 1.2 Scope
-The system enables Admins, Doctors, and Patients to interact through role-based interfaces. Key features include real-time queue updates, smart scheduling, AI-based symptom intake, SVG-based tooth selection, pre-visit forms, Razorpay/Stripe payment integration, and a gamified dental health score system.
+The product enables authorized users to manage organizational entities (admin, doctors, patients), handle appointment bookings with real-time queue tracking, collect symptom data via chatbot, visualize dental issues with an SVG-based tooth selector, and process secure online payments. Role-Based Access Control (RBAC) ensures each user only accesses relevant features.
 
-### 1.3 Intended Audience
-- Project Developers  
-- Hackathon Evaluators  
-- Future Clinic Stakeholders  
-- Technical and Business Teams
+### 1.3 Stakeholders
 
-### 1.4 Definitions, Acronyms, and Abbreviations
-- JWT: JSON Web Token  
-- SVG: Scalable Vector Graphics  
-- API: Application Programming Interface  
-- SRS: Software Requirements Specification  
-- UI/UX: User Interface/User Experience
+| Stakeholder          | Interest                                                   |
+|----------------------|------------------------------------------------------------|
+| Clinic Admin         | Manages staff, appointments, reports, and payments         |
+| Doctors              | View schedule, access patient info, record treatment       |
+| Patients             | Book appointments, submit forms, track queue, make payment|
+| IT/Deployment Team   | Deployment, performance, maintenance                       |
+| Developers           | Ensure code quality, scalability, and security             |
+
+### 1.4 Definitions & Abbreviations
+
+| Term       | Meaning                                                                   |
+|------------|---------------------------------------------------------------------------|
+| JWT        | JSON Web Token, used for secure role-based authentication                |
+| SVG        | Scalable Vector Graphics used in the tooth diagram                        |
+| RBAC       | Role-Based Access Control                                                 |
+| EMI        | Equated Monthly Installment for subscription payments                    |
+| UHI        | Unique Health Identifier                                                  |
 
 ## 2. Overall Description
 
 ### 2.1 Product Perspective
-This is a standalone web-based system with modular architecture, designed to work independently of any hospital management software. The backend is a single Flask app (`app.py`), and the frontend is built with React.js.
+A responsive, multi-tenant web-based application with a React frontend and Flask backend (single app.py). APIs expose core functionality, allowing for future integrations. The system includes WebSocket (or polling) for real-time updates and supports secure cloud deployment.
 
-### 2.2 Product Functions
-- User Registration and Role-based Login  
-- Appointment Booking and Scheduling  
-- AI Chatbot for Symptom Collection  
-- Interactive Tooth Selector  
-- Queue Tracking (WebSocket or polling)  
-- Pre-visit Medical Forms  
-- Treatment Recording by Doctors  
-- Payment Module Integration  
-- Admin Dashboard and Reporting  
+### 2.2 User Classes & Characteristics
+
+| Class            | Key Permissions                                                                 |
+|------------------|----------------------------------------------------------------------------------|
+| Admin            | Manage users, appointments, payments, system reports                            |
+| Doctor           | View appointments, patient info, and submit treatment notes                     |
+| Patient          | Book/view appointments, submit pre-visit forms, chatbot intake, make payments   |
+
+### 2.3 Product Functions (High-Level)
+- User Registration & JWT Authentication
+- Role-Based Dashboard Access
+- Smart Appointment Booking & Conflict Detection
+- AI Chatbot for Symptom Collection
+- SVG-Based Tooth Selector
+- Queue Tracking (WebSocket or polling)
+- Pre-Visit Medical Forms
+- Treatment Note Recording
+- Razorpay/Stripe Payment Integration
 - Gamified Dental Health Score
+- Admin Analytics & Report Export
 
-### 2.3 User Classes and Characteristics
-- Admin: Manages users, doctors, appointments, reports, and payments.  
-- Doctor: Views schedules, adds treatment notes, and accesses patient forms.  
-- Patient: Books appointments, fills forms, interacts with chatbot, tracks queue, and completes payments.
+### 2.4 Assumptions & Dependencies
+- Users will access the platform via a web browser.
+- Backend hosted on cloud with CORS & HTTPS enabled.
+- Payment gateways (Razorpay/Stripe) operate in test/live mode.
+- WebSocket may be replaced by polling based on deployment constraints.
 
-### 2.4 Operating Environment
-- Web Browsers: Chrome, Edge, Firefox  
-- Backend: Python 3.x with Flask  
-- Frontend: React.js with TailwindCSS  
-- Database: MySQL  
-- Deployment: Render, Railway, or any container-based platform
+## 3. Functional Requirements
 
-### 2.5 Design and Implementation Constraints
-- Single-file backend (`app.py`) as per hackathon constraint  
-- Frontend and backend must communicate via REST APIs  
-- All role-based authentication must use JWT  
-- Payment integration through Razorpay/Stripe sandbox environment
+### 3.1 Authentication & Access Control
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-AUTH-01 | System shall allow secure user registration and login with JWT authentication                    |
+| FR-AUTH-02 | RBAC ensures users can only access dashboards relevant to their role                             |
+| FR-AUTH-03 | Passwords shall be hashed using industry-standard algorithms                                     |
 
-### 2.6 Assumptions and Dependencies
-- Users will have access to internet and a browser  
-- Payment gateway APIs are functional in test mode  
-- Data privacy is enforced via token-based access
+### 3.2 Appointment Management
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-APPT-01 | Patients shall view doctors' availability and book slots                                          |
+| FR-APPT-02 | System prevents double-booking and displays idle slots preferentially                            |
+| FR-APPT-03 | Admins and patients may reschedule with conflict checks                                           |
+| FR-APPT-04 | If no slots are available, patients may join a waitlist                                           |
 
-## 3. System Features
-
-### 3.1 Authentication Module
-- Secure login/register for all roles  
-- JWT-based authentication and authorization  
-- Passwords are stored with hashing (bcrypt or equivalent)
-
-### 3.2 Appointment Scheduling
-- Calendar-based UI for selecting slots  
-- Smart conflict prevention logic  
-- Waitlist functionality if slots are full
-
-### 3.3 AI Chatbot and Tooth Selector
-- Chatbot prompts for symptoms: pain type, duration, triggers  
-- Clickable SVG diagram for selecting affected tooth  
-- All data is saved and sent with the appointment
+### 3.3 AI Chatbot & Tooth Selector
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-AI-01   | Patients interact with a chatbot to submit symptom details                                        |
+| FR-AI-02   | SVG-based interface allows patients to indicate affected tooth                                    |
 
 ### 3.4 Pre-Visit Forms
-- Includes medical history, allergy information, and consent  
-- Auto-assigned upon successful booking  
-- Reviewed by the doctor prior to consultation
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-FORM-01 | System sends pre-visit forms (medical history, allergies, consent) post-booking                  |
+| FR-FORM-02 | Forms are digitally filled and available to doctors pre-consultation                            |
 
-### 3.5 Treatment Notes
-- Doctors add diagnosis, treatment, and follow-up instructions  
-- Records linked to specific appointment ID
+### 3.5 Treatment Management
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-TREAT-01| Doctors submit diagnosis, treatment provided, and follow-up date                                 |
+| FR-TREAT-02| Data is linked to the corresponding appointment record                                            |
 
-### 3.6 Queue Tracker
-- Displays real-time position and estimated wait time  
-- Polling or WebSocket used for updates
+### 3.6 Queue Tracking & Real-Time Updates
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-QUEUE-01| System displays real-time queue status to patients                                                |
+| FR-QUEUE-02| Queue updated using WebSocket or polling every 30 seconds                                        |
 
-### 3.7 Payment System
-- Razorpay/Stripe integration  
-- Supports one-time or EMI payments  
-- Admin can view and filter payment logs
+### 3.7 Payment & Subscription
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-PAY-01  | Patients complete payments via Razorpay/Stripe (one-time or EMI)                                |
+| FR-PAY-02  | Admin can view, track, and filter payments by method and date                                    |
+| FR-PAY-03  | Payment logs are exportable as reports                                                            |
 
-### 3.8 Gamified Dental Health Score
-- Scores increase with regular visits and good form data  
-- Reduces with severe treatments or missed visits  
-- Displayed visually on patient dashboard
+### 3.8 Gamified Dental Score
+| ID         | Requirement                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| FR-SCORE-01| Patients see a dental score based on visits, hygiene, and treatment severity                     |
+| FR-SCORE-02| System updates score after every visit or form submission                                        |
 
-## 4. External Interface Requirements
+## 4. Data Model (Logical View)
 
-### 4.1 User Interfaces
-- React-based dashboards for each role  
-- Mobile-friendly, responsive UI using TailwindCSS  
-- Forms and chatbot have progressive input handling
+- User (id, name, email, password, role)
+- Appointment (id, patient_id, doctor_id, date, time, tooth_id, symptoms, notes, status)
+- TreatmentNote (id, appointment_id, diagnosis, treatment, follow_up_in_days)
+- Payment (id, appointment_id, amount, method, status, plan_type)
+- DentalScore (id, patient_id, score)
+- Waitlist (id, patient_id, doctor_id, preferred_date, time_range)
 
-### 4.2 Hardware Interfaces
-- Not applicable (Web application)
+## 5. Non-Functional Requirements
 
-### 4.3 Software Interfaces
-- REST API between frontend and backend  
-- Razorpay/Stripe API for payments  
-- WebSocket or HTTP polling for queue tracking
+| Category           | Requirement                                                                                   |
+|--------------------|-----------------------------------------------------------------------------------------------|
+| Performance        | Queue status and page loads should update within 1 second                                    |
+| Scalability        | Support 100 concurrent users in clinic during peak hours                                     |
+| Security           | Password hashing, JWT-based auth, HTTPS, OWASP mitigations                                   |
+| Availability       | 99.5% uptime expected for the deployed system                                                 |
+| Maintainability    | Single-file backend (Flask) for MVP; modular components for frontend (React)                 |
+| Accessibility      | Basic accessibility (contrast, keyboard navigation) for patient usability                    |
+| Internationalisation| Support for INR/other currencies in payment gateway; regional support (Phase 2)            |
 
-### 4.4 Communication Interfaces
-- HTTPS for all client-server communication  
-- CORS enabled for frontend-backend cross-origin requests
+## 6. User Interface Mock-up Summary (Wireframes TBD)
 
-## 5. Non-functional Requirements
-
-### 5.1 Performance Requirements
-- The system should handle 50+ concurrent users in real-time  
-- Response time < 1 second for queue updates and form submissions
-
-### 5.2 Security Requirements
-- JWT-based access control  
-- Data encryption in transit (HTTPS)  
-- Passwords hashed in database
-
-### 5.3 Usability Requirements
-- UI designed for low learning curve  
-- Accessible for users with basic tech knowledge
-
-### 5.4 Reliability and Availability
-- 99% uptime during clinic hours  
-- Error handling and logs available for API failures
-
-## 6. Appendix
-
-### 6.1 Database Models
-- users(id, name, email, password, role)  
-- appointments(id, patient_id, doctor_id, date, time, tooth_id, symptoms, notes, status)  
-- treatment_notes(id, appointment_id, diagnosis, treatment, follow_up_in_days)  
-- payments(id, appointment_id, amount, method, status, plan_type)  
-- dental_scores(id, patient_id, score)  
-- waitlist(id, patient_id, doctor_id, preferred_date, time_range)
-
-### 6.2 Future Enhancements
-- AI-based treatment recommendations  
-- Multilingual support for chatbot  
-- Insurance API integration  
-- SMS/email reminders and feedback surveys
+- Patient Dashboard – Book appointment, view queue, score tracker, payment history
+- Doctor Dashboard – View schedule, access patient data, submit treatment
+- Admin Dashboard – Appointment logs, user management, payments, reports
+- Chatbot Interface – Conversational symptom input before booking confirmation
+- SVG Tooth Selector – Graphical interface for tooth selection
+- Pre-Visit Form – Online submission of history, consent, allergies
+- Queue Screen – Live updates showing estimated wait time and position
