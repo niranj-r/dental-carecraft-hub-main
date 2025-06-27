@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import pymysql
 from pymysql.cursors import DictCursor
+from datetime import timedelta, time as dtime
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:8080", "http://192.168.137.160:8080", "*"]}})
@@ -75,24 +76,41 @@ def login():
 
 @app.route('/api/appointments', methods=['GET', 'POST'])
 def appointments():
+    print('--- /api/appointments called ---')
+    print('Method:', request.method)
+    print('Headers:', dict(request.headers))
+    if request.method == 'POST':
+        print('Body:', request.get_data(as_text=True))
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             if request.method == 'GET':
                 cursor.execute('SELECT * FROM appointments')
-                return jsonify(cursor.fetchall())
+                results = cursor.fetchall()
+                print('Fetched appointments:', results)
+                for row in results:
+                    for k, v in row.items():
+                        print(f'Key: {k}, Value: {v}, Type: {type(v)}')
+                        if isinstance(v, (timedelta, dtime)):
+                            row[k] = str(v)
+                print('Serialized appointments:', results)
+                return jsonify(results)
             elif request.method == 'POST':
                 data = request.get_json()
+                print('Received appointment POST data:', data)
                 required = ['patient_id', 'doctor_id', 'date', 'time', 'status']
                 if not data or not all(k in data and data[k] is not None for k in required):
+                    print('Missing required fields:', data)
                     return jsonify({'error': 'Missing required fields'}), 400
                 try:
                     cursor.execute('INSERT INTO appointments (patient_id, doctor_id, date, time, status) VALUES (%s, %s, %s, %s, %s)',
                                    (data.get('patient_id'), data.get('doctor_id'), data.get('date'), data.get('time'), data.get('status')))
                     conn.commit()
+                    print('Appointment inserted successfully.')
                     return jsonify({'status': 'success'}), 201
                 except Exception as e:
                     conn.rollback()
+                    print('Error inserting appointment:', str(e))
                     return jsonify({'error': str(e)}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500

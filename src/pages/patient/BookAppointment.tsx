@@ -68,8 +68,44 @@ const BookAppointment = () => {
   const allSlots = generateTimeSlots();
   const bookedTimes = getBookedTimes();
 
-  const handleSubmit = () => {
-    toast.success("Appointment booked successfully! 🎉");
+  const handleSubmit = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user || !user.patient_id) {
+        toast.error('You must be logged in as a patient to book an appointment.');
+        return;
+      }
+      const doctor = doctors.find(d => d.id === selectedDoctor);
+      if (!doctor) {
+        toast.error('Please select a doctor.');
+        return;
+      }
+      if (!selectedDate || !selectedTime) {
+        toast.error('Please select a date and time.');
+        return;
+      }
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const payload = {
+        patient_id: user.patient_id,
+        doctor_id: doctor.id,
+        date: dateStr,
+        time: selectedTime,
+        status: 'scheduled'
+      };
+      console.log('Booking payload:', payload);
+      await axios.post('http://localhost:5000/api/appointments', payload);
+      toast.success('Appointment booked successfully! 🎉');
+      setStep(1);
+      setSelectedDate(undefined);
+      setSelectedTime('');
+      setSelectedDoctor('');
+      setSelectedTooth('');
+      setSymptoms([]);
+      setNotes('');
+    } catch (err: any) {
+      console.error('Booking error:', err);
+      toast.error(err.response?.data?.error || 'Failed to book appointment.');
+    }
   };
 
   const nextStep = () => setStep(step + 1);
