@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -42,9 +41,11 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
-              Get Started <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link to="/patient-onboarding">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+                Get Started <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-blue-200 hover:bg-blue-50">
               Watch Demo
             </Button>
@@ -73,7 +74,7 @@ const Index = () => {
                 <p className="text-gray-600 mb-6">
                   Book appointments, view history, and manage your dental care
                 </p>
-                <Link to="/patient">
+                <Link to="/patient-onboarding">
                   <Button className="w-full bg-green-600 hover:bg-green-700">
                     Enter Patient Portal <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -91,11 +92,18 @@ const Index = () => {
                 <p className="text-gray-600 mb-6">
                   Manage appointments, view patient records, and provide care
                 </p>
-                <Link to="/doctor">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Enter Doctor Portal <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
+                <div className="space-y-3">
+                  <Link to="/doctor-login">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                      Doctor Login <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/doctor-register">
+                    <Button variant="outline" className="w-full border-blue-200 hover:bg-blue-50">
+                      Apply for Access
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
 
@@ -109,7 +117,7 @@ const Index = () => {
                 <p className="text-gray-600 mb-6">
                   Manage clinic operations, staff, and system settings
                 </p>
-                <Link to="/admin">
+                <Link to="/admin-login">
                   <Button className="w-full bg-purple-600 hover:bg-purple-700">
                     Enter Admin Portal <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -340,9 +348,11 @@ const Index = () => {
             Let's make dental care modern, mindful, and magical.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg">
-              Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link to="/patient-onboarding">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg">
+                Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg">
               Schedule Demo
             </Button>

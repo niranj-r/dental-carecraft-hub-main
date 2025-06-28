@@ -13,7 +13,7 @@ const PaymentsPage = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.patient_id) return;
-    axios.get('http://localhost:5000/api/payments?patient_id=' + user.patient_id)
+    axios.get('http://127.0.0.1:5000/api/payments?patient_id=' + user.patient_id)
       .then(res => setPayments(res.data))
       .catch(err => console.error(err));
   }, []);

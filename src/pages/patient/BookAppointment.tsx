@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronRight, Clock, User } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, User, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import ToothDiagram from '@/components/patient/ToothDiagram';
+import ThreeDModelModal from '@/components/patient/ThreeDModelModal';
 import SymptomChatbot from '@/components/patient/SymptomChatbot';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -20,6 +21,7 @@ const BookAppointment = () => {
   const [notes, setNotes] = useState('');
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [show3DModal, setShow3DModal] = useState(false);
 
   const generateTimeSlots = () => {
     const slots = [];
@@ -38,7 +40,7 @@ const BookAppointment = () => {
 
   useEffect(() => {
     // Fetch doctors
-    axios.get('http://localhost:5000/api/doctors')
+    axios.get('http://127.0.0.1:5000/api/doctors')
       .then(res => {
         setDoctors(res.data.map(doc => ({
           id: doc.id,
@@ -50,7 +52,7 @@ const BookAppointment = () => {
       .catch(err => console.error(err));
 
     // Fetch appointments
-    axios.get('http://localhost:5000/api/appointments')
+    axios.get('http://127.0.0.1:5000/api/appointments')
       .then(res => {
         setAppointments(res.data);
       })
@@ -93,7 +95,7 @@ const BookAppointment = () => {
         status: 'scheduled'
       };
       console.log('Booking payload:', payload);
-      await axios.post('http://localhost:5000/api/appointments', payload);
+      await axios.post('http://127.0.0.1:5000/api/appointments', payload);
       toast.success('Appointment booked successfully! 🎉');
       setStep(1);
       setSelectedDate(undefined);
@@ -218,7 +220,36 @@ const BookAppointment = () => {
 
           {step === 3 && (
             <div className="space-y-6">
-              <ToothDiagram onToothSelect={setSelectedTooth} selectedTooth={selectedTooth} />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-medium">Select Affected Tooth</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShow3DModal(true)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Box className="h-4 w-4" />
+                    <span>3D View</span>
+                  </Button>
+                </div>
+                <ToothDiagram onToothSelect={setSelectedTooth} selectedTooth={selectedTooth} />
+                {selectedTooth && (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="text-sm text-green-800">
+                      <span className="font-medium">Selected tooth:</span> {selectedTooth}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedTooth('')}
+                      className="text-green-700 hover:text-green-800"
+                    >
+                      Change
+                    </Button>
+                  </div>
+                )}
+              </div>
               <SymptomChatbot onSymptomsUpdate={setSymptoms} />
               <div>
                 <Label htmlFor="notes" className="text-base font-medium">Additional Notes (Optional)</Label>
@@ -297,6 +328,14 @@ const BookAppointment = () => {
           </Button>
         )}
       </div>
+
+      {/* 3D Model Modal */}
+      <ThreeDModelModal
+        isOpen={show3DModal}
+        onClose={() => setShow3DModal(false)}
+        selectedTooth={selectedTooth}
+        onToothSelect={setSelectedTooth}
+      />
     </div>
   );
 };

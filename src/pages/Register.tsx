@@ -19,7 +19,7 @@ const Register = () => {
     setSuccess('');
     try {
       const payload = { username, password, role: 'patient', name, age, gender, contact };
-      await axios.post('http://localhost:5000/api/register', payload);
+      await axios.post('http://127.0.0.1:5000/api/register', payload);
       setSuccess('Registration successful! Redirecting to login...');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err: any) {

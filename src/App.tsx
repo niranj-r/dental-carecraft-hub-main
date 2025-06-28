@@ -17,7 +17,13 @@ import PatientRecords from "./pages/doctor/PatientRecords";
 import TreatmentNotes from "./pages/doctor/TreatmentNotes";
 import Login from './pages/Login';
 import Register from './pages/Register';
+import DoctorLogin from './pages/DoctorLogin';
+import DoctorRegister from './pages/DoctorRegister';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './pages/AdminLogin';
 import Messages from "./pages/patient/Messages";
+import PatientOnboarding from './pages/PatientOnboarding';
+import Tooth3DViewer from './pages/patient/Tooth3DViewer';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +41,7 @@ const App = () => (
             <Route path="history" element={<AppointmentHistory />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="tooth-3d" element={<Tooth3DViewer />} />
           </Route>
           <Route path="/doctor" element={<DoctorLayout />}>
             <Route index element={<DoctorDashboard />} />
@@ -46,6 +53,11 @@ const App = () => (
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/doctor-login" element={<DoctorLogin />} />
+          <Route path="/doctor-register" element={<DoctorRegister />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/patient-onboarding" element={<PatientOnboarding />} />
           
           {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
           

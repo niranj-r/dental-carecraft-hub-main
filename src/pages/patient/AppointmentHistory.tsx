@@ -11,7 +11,7 @@ const AppointmentHistory = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.patient_id) return;
-    axios.get('http://localhost:5000/api/appointments?patient_id=' + user.patient_id)
+    axios.get('http://127.0.0.1:5000/api/appointments?patient_id=' + user.patient_id)
       .then(res => setAppointments(res.data))
       .catch(err => console.error(err));
   }, []);

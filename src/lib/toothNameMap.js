@@ -1,0 +1,41 @@
+export const toothNameMap = {
+  Tooth_11: 'Upper Right Central Incisor',
+  Tooth_12: 'Upper Right Lateral Incisor',
+  Tooth_13: 'Upper Right Canine',
+  Tooth_14: 'Upper Right First Premolar',
+  Tooth_15: 'Upper Right Second Premolar',
+  Tooth_16: 'Upper Right First Molar',
+  Tooth_17: 'Upper Right Second Molar',
+  Tooth_18: 'Upper Right Third Molar (Wisdom Tooth)',
+
+  Tooth_21: 'Upper Left Central Incisor',
+  Tooth_22: 'Upper Left Lateral Incisor',
+  Tooth_23: 'Upper Left Canine',
+  Tooth_24: 'Upper Left First Premolar',
+  Tooth_25: 'Upper Left Second Premolar',
+  Tooth_26: 'Upper Left First Molar',
+  Tooth_27: 'Upper Left Second Molar',
+  Tooth_28: 'Upper Left Third Molar',
+
+  Tooth_31: 'Lower Left Central Incisor',
+  Tooth_32: 'Lower Left Lateral Incisor',
+  Tooth_33: 'Lower Left Canine',
+  Tooth_34: 'Lower Left First Premolar',
+  Tooth_35: 'Lower Left Second Premolar',
+  Tooth_36: 'Lower Left First Molar',
+  Tooth_37: 'Lower Left Second Molar',
+  Tooth_38: 'Lower Left Third Molar',
+
+  Tooth_41: 'Lower Right Central Incisor',
+  Tooth_42: 'Lower Right Lateral Incisor',
+  Tooth_43: 'Lower Right Canine',
+  Tooth_44: 'Lower Right First Premolar',
+  Tooth_45: 'Lower Right Second Premolar',
+  Tooth_46: 'Lower Right First Molar',
+  Tooth_47: 'Lower Right Second Molar',
+  Tooth_48: 'Lower Right Third Molar',
+
+
+  Zunge_Plane012: 'Tongue',
+  Gums_node: 'Gums',
+}

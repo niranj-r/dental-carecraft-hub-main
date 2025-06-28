@@ -13,7 +13,14 @@ CREATE TABLE IF NOT EXISTS doctors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
     specialty VARCHAR(100),
-    contact VARCHAR(50)
+    contact VARCHAR(50),
+    email VARCHAR(100),
+    license_number VARCHAR(50),
+    experience INT DEFAULT 0,
+    education TEXT,
+    status ENUM('pending_approval', 'approved', 'rejected') DEFAULT 'pending_approval',
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS appointments (
@@ -56,11 +63,23 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)
 );
 
+CREATE TABLE IF NOT EXISTS treatment_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id INT,
+    patient_id INT,
+    diagnosis TEXT,
+    treatment_plan TEXT,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id)
+);
+
 -- Sample doctors
-INSERT INTO doctors (name, specialty, contact) VALUES
-('Dr. Sarah Smith', 'General Dentistry', '+1 234-567-8901'),
-('Dr. Mike Johnson', 'Orthodontics', '+1 234-567-8902'),
-('Dr. Lisa Brown', 'Oral Surgery', '+1 234-567-8903');
+INSERT INTO doctors (name, specialty, contact, email, license_number, experience, education, status) VALUES
+('Dr. Sarah Smith', 'General Dentistry', '+1 234-567-8901', 'drsmith@dentalcare.com', 'MD123456', 8, 'DDS from Harvard Dental School', 'approved'),
+('Dr. Mike Johnson', 'Orthodontics', '+1 234-567-8902', 'drjohnson@dentalcare.com', 'MD789012', 12, 'DDS from Stanford Dental School, Orthodontics Residency', 'approved'),
+('Dr. Lisa Brown', 'Oral Surgery', '+1 234-567-8903', 'drbrown@dentalcare.com', 'MD345678', 15, 'DDS from UCLA Dental School, Oral Surgery Fellowship', 'approved');
 
 -- Sample patients
 INSERT INTO patients (name, age, gender, contact) VALUES

@@ -1,34 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, User, Calendar, Phone, Mail, FileText } from 'lucide-react';
+import { Search, User, Phone, Calendar, FileText, Eye } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const PatientRecords = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [patients, setPatients] = useState([]);
+  const [filteredPatients, setFilteredPatients] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Get doctor ID from localStorage
+  const doctorId = localStorage.getItem('doctorId') || '1';
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/patients')
-      .then(res => setPatients(res.data))
-      .catch(err => console.error(err));
-  }, []);
+    const fetchPatients = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://127.0.0.1:5000/api/doctors/${doctorId}/patients`);
+        setPatients(response.data);
+        setFilteredPatients(response.data);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ongoing': return 'bg-orange-100 text-orange-800';
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'routine': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    fetchPatients();
+  }, [doctorId]);
+
+  useEffect(() => {
+    const filtered = patients.filter(patient =>
+      patient.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.contact?.includes(searchTerm)
+    );
+    setFilteredPatients(filtered);
+  }, [searchTerm, patients]);
+
+  const handleViewPatient = (patientId) => {
+    navigate(`/doctor/patients/${patientId}`);
   };
 
-  const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleAddTreatmentNotes = (patientId) => {
+    navigate(`/doctor/notes/add?patient_id=${patientId}`);
+  };
+
+  const handleViewHistory = (patientId) => {
+    navigate(`/doctor/patients/${patientId}/history`);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading patients...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -36,20 +68,20 @@ const PatientRecords = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Patient Records</h1>
-          <p className="text-gray-600">Manage and view patient information</p>
+          <p className="text-gray-600">Manage and view your patient information</p>
         </div>
-        <Button>
-          Add New Patient
+        <Button onClick={() => navigate('/doctor')}>
+          Back to Dashboard
         </Button>
       </div>
 
       {/* Search */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search patients by name or email..."
+              placeholder="Search patients by name or contact..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -58,64 +90,105 @@ const PatientRecords = () => {
         </CardContent>
       </Card>
 
-      {/* Patients Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPatients.map((patient) => (
-          <Card key={patient.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 rounded-full">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{patient.name}</CardTitle>
-                    <p className="text-sm text-gray-600">Age: {patient.age}</p>
-                  </div>
-                </div>
-                <Badge className={getStatusColor(patient.treatmentStatus)}>
-                  {patient.treatmentStatus}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Mail className="h-4 w-4" />
-                  <span>{patient.email}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Phone className="h-4 w-4" />
-                  <span>{patient.phone}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span>Last visit: {patient.lastVisit}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span>Next: {patient.nextAppointment}</span>
-                </div>
-                
-                <div className="pt-2">
-                  <p className="text-sm font-medium text-gray-700">Current Condition:</p>
-                  <p className="text-sm text-gray-600">{patient.condition}</p>
-                </div>
-                
-                <div className="flex space-x-2 pt-3">
-                  <Button size="sm" variant="outline" className="flex-1">
-                    <FileText className="h-4 w-4 mr-1" />
-                    Records
-                  </Button>
-                  <Button size="sm" className="flex-1">
-                    View Details
-                  </Button>
-                </div>
-              </div>
+      {/* Patient List */}
+      <div className="grid gap-4">
+        {filteredPatients.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {searchTerm ? 'No patients found' : 'No patients yet'}
+              </h3>
+              <p className="text-gray-500">
+                {searchTerm 
+                  ? 'Try adjusting your search terms' 
+                  : 'Patients will appear here once they have appointments with you'
+                }
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredPatients.map((patient) => (
+            <Card key={patient.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <User className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{patient.name}</h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-1">
+                          <span>Age: {patient.age}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span>Gender: {patient.gender}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Phone className="h-3 w-3" />
+                          <span>{patient.contact}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <Calendar className="h-3 w-3" />
+                          <span>{patient.appointment_count} appointments</span>
+                        </div>
+                        {patient.last_appointment && (
+                          <div className="text-sm text-gray-500">
+                            Last visit: {patient.last_appointment}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewPatient(patient.id)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View Details
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddTreatmentNotes(patient.id)}
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      Add Notes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewHistory(patient.id)}
+                    >
+                      <Calendar className="h-4 w-4 mr-1" />
+                      History
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
+
+      {/* Summary */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Showing {filteredPatients.length} of {patients.length} patients
+            </div>
+            <Badge variant="secondary">
+              Total Patients: {patients.length}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

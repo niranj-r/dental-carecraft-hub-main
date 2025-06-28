@@ -1,162 +1,275 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, User, MapPin, Phone } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, Clock, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const DoctorSchedule = () => {
-  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const navigate = useNavigate();
+
+  // Get doctor ID from localStorage
+  const doctorId = localStorage.getItem('doctorId') || '1';
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/appointments')
-      .then(res => setTodayAppointments(res.data))
-      .catch(err => console.error(err));
-  }, []);
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://127.0.0.1:5000/api/doctors/${doctorId}/appointments`);
+        setAppointments(response.data);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'current': return 'bg-blue-100 text-blue-800';
-      case 'urgent': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    fetchAppointments();
+  }, [doctorId]);
+
+  const handleStatusUpdate = async (appointmentId, newStatus) => {
+    try {
+      await axios.put(`http://127.0.0.1:5000/api/appointments/${appointmentId}/status`, {
+        status: newStatus
+      });
+      
+      // Refresh appointments
+      const response = await axios.get(`http://127.0.0.1:5000/api/doctors/${doctorId}/appointments`);
+      setAppointments(response.data);
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'Completed';
-      case 'current': return 'In Progress';
-      case 'urgent': return 'Urgent';
-      default: return 'Scheduled';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'urgent':
+        return 'bg-orange-100 text-orange-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'cancelled':
+        return <XCircle className="h-4 w-4" />;
+      case 'urgent':
+        return <AlertTriangle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const filteredAppointments = appointments.filter(appointment => 
+    appointment.date === selectedDate
+  );
+
+  const todayAppointments = appointments.filter(appointment => 
+    appointment.date === new Date().toISOString().split('T')[0]
+  );
+
+  const upcomingAppointments = appointments.filter(appointment => 
+    appointment.date > new Date().toISOString().split('T')[0]
+  ).slice(0, 5);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading schedule...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Today's Schedule</h1>
-          <p className="text-gray-600">Tuesday, March 19, 2024</p>
+          <h1 className="text-3xl font-bold text-gray-900">Schedule Management</h1>
+          <p className="text-gray-600">Manage your appointments and patient schedule</p>
         </div>
-        <div className="flex space-x-3">
-          <Button variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            View Calendar
-          </Button>
-          <Button>
-            Add Emergency Slot
-          </Button>
-        </div>
+        <Button onClick={() => navigate('/doctor')}>
+          Back to Dashboard
+        </Button>
       </div>
 
-      {/* Schedule Overview */}
-      <div className="grid md:grid-cols-4 gap-4">
+      {/* Stats Cards */}
+      <div className="grid md:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">5</p>
-              <p className="text-sm text-gray-600">Total Appointments</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">1</p>
-              <p className="text-sm text-gray-600">Completed</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">3</p>
-              <p className="text-sm text-gray-600">Remaining</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">1</p>
-              <p className="text-sm text-gray-600">Urgent</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Appointments List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Appointments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {todayAppointments.map((appointment) => (
-              <div key={appointment.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex space-x-4">
-                    <div className="text-center min-w-[80px]">
-                      <p className="font-semibold text-blue-600">{appointment.time}</p>
-                      <p className="text-sm text-gray-500">{appointment.duration}</p>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{appointment.patient}</h3>
-                        <Badge className={getStatusColor(appointment.status)}>
-                          {getStatusText(appointment.status)}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <div className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4" />
-                          <span>{appointment.phone}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4" />
-                          <span>{appointment.type}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-700">Symptoms:</p>
-                        <p className="text-sm text-gray-600">{appointment.symptoms}</p>
-                      </div>
-                      
-                      {appointment.notes && (
-                        <div className="mt-2">
-                          <p className="text-sm font-medium text-gray-700">Notes:</p>
-                          <p className="text-sm text-gray-600">{appointment.notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col space-y-2">
-                    <Button size="sm" variant="outline">
-                      View Patient
-                    </Button>
-                    {appointment.status === 'scheduled' && (
-                      <Button size="sm">
-                        Start Treatment
-                      </Button>
-                    )}
-                    {appointment.status === 'current' && (
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                        Complete
-                      </Button>
-                    )}
-                  </div>
-                </div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
+                <p className="text-2xl font-bold text-gray-900">{todayAppointments.length}</p>
               </div>
-            ))}
+              <Calendar className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Completed Today</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {todayAppointments.filter(a => a.status === 'completed').length}
+                </p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Today</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {todayAppointments.filter(a => a.status === 'pending').length}
+                </p>
+              </div>
+              <Clock className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Appointments</p>
+                <p className="text-2xl font-bold text-gray-900">{appointments.length}</p>
+              </div>
+              <User className="h-8 w-8 text-gray-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Date Selector */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">Select Date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="p-2 border border-gray-300 rounded-md"
+            />
           </div>
         </CardContent>
       </Card>
+
+      {/* Selected Date Appointments */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="h-5 w-5" />
+            <span>Appointments for {selectedDate}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredAppointments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No appointments scheduled for this date.
+              </div>
+            ) : (
+              filteredAppointments.map((appointment) => (
+                <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <p className="font-semibold text-blue-600">{appointment.time}</p>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900">{appointment.patient_name}</h4>
+                      <p className="text-sm text-gray-600">Age: {appointment.age} | Gender: {appointment.gender}</p>
+                      <p className="text-sm text-gray-500">Contact: {appointment.patient_contact}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Badge className={getStatusColor(appointment.status)}>
+                      <div className="flex items-center space-x-1">
+                        {getStatusIcon(appointment.status)}
+                        <span>{appointment.status}</span>
+                      </div>
+                    </Badge>
+                    <Select
+                      value={appointment.status}
+                      onValueChange={(value) => handleStatusUpdate(appointment.id, value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upcoming Appointments */}
+      {upcomingAppointments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5" />
+              <span>Upcoming Appointments</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingAppointments.map((appointment) => (
+                <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <p className="font-semibold text-blue-600">{appointment.time}</p>
+                      <p className="text-sm text-gray-500">{appointment.date}</p>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900">{appointment.patient_name}</h4>
+                      <p className="text-sm text-gray-600">Age: {appointment.age} | Gender: {appointment.gender}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Badge className={getStatusColor(appointment.status)}>
+                      <div className="flex items-center space-x-1">
+                        {getStatusIcon(appointment.status)}
+                        <span>{appointment.status}</span>
+                      </div>
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

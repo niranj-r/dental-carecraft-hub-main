@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Calendar, Users, FileText, Home, Clock, BarChart3 } from 'lucide-react';
@@ -9,10 +8,9 @@ const DoctorSidebar = () => {
   
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/doctor' },
-    { icon: Calendar, label: 'Today\'s Schedule', path: '/doctor/schedule' },
+    { icon: Calendar, label: 'Schedule', path: '/doctor/schedule' },
     { icon: Users, label: 'Patients', path: '/doctor/patients' },
     { icon: FileText, label: 'Treatment Notes', path: '/doctor/notes' },
-    { icon: Clock, label: 'Appointment History', path: '/doctor/history' },
     { icon: BarChart3, label: 'Reports', path: '/doctor/reports' },
   ];
 
