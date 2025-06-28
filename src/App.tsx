@@ -25,6 +25,14 @@ import Messages from "./pages/patient/Messages";
 import PatientOnboarding from './pages/PatientOnboarding';
 import Tooth3DViewer from './pages/patient/Tooth3DViewer';
 
+// Admin pages
+import AdminPatients from './pages/admin/AdminPatients';
+import AdminAppointments from './pages/admin/AdminAppointments';
+import AdminTreatmentNotes from './pages/admin/AdminTreatmentNotes';
+import AdminDoctors from './pages/admin/AdminDoctors';
+import AdminEmergencyScheduling from './pages/admin/AdminEmergencyScheduling';
+import AdminReports from './pages/admin/AdminReports';
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -57,6 +65,15 @@ const App = () => (
           <Route path="/doctor-register" element={<DoctorRegister />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/patients" element={<AdminPatients />} />
+          <Route path="/admin/appointments" element={<AdminAppointments />} />
+          <Route path="/admin/treatment-notes" element={<AdminTreatmentNotes />} />
+          <Route path="/admin/doctors" element={<AdminDoctors />} />
+          <Route path="/admin/emergency-scheduling" element={<AdminEmergencyScheduling />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
+          
           <Route path="/patient-onboarding" element={<PatientOnboarding />} />
           
           {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}

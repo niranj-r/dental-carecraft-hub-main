@@ -47,8 +47,15 @@ def get_doctors():
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            # Only return approved doctors for appointment booking
-            cursor.execute('SELECT * FROM doctors WHERE status = %s', ('approved',))
+            # Check if admin access is requested
+            admin_access = request.args.get('admin', 'false').lower() == 'true'
+            
+            if admin_access:
+                # Return all doctors for admin access
+                cursor.execute('SELECT * FROM doctors')
+            else:
+                # Only return approved doctors for appointment booking
+                cursor.execute('SELECT * FROM doctors WHERE status = %s', ('approved',))
             return jsonify(cursor.fetchall())
     except Exception as e:
         return jsonify({'error': str(e)}), 500
