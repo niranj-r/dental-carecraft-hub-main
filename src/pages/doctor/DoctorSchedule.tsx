@@ -6,11 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Clock, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentISTDate, formatDateToIST, formatTimeToIST } from '@/lib/utils';
 
 const DoctorSchedule = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getCurrentISTDate());
   const navigate = useNavigate();
 
   // Get doctor ID from localStorage
@@ -79,11 +80,11 @@ const DoctorSchedule = () => {
   );
 
   const todayAppointments = appointments.filter(appointment => 
-    appointment.date === new Date().toISOString().split('T')[0]
+    appointment.date === getCurrentISTDate()
   );
 
   const upcomingAppointments = appointments.filter(appointment => 
-    appointment.date > new Date().toISOString().split('T')[0]
+    appointment.date > getCurrentISTDate()
   ).slice(0, 5);
 
   if (loading) {
@@ -196,7 +197,7 @@ const DoctorSchedule = () => {
                 <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
-                      <p className="font-semibold text-blue-600">{appointment.time}</p>
+                      <p className="font-semibold text-blue-600">{formatTimeToIST(appointment.time)}</p>
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{appointment.patient_name}</h4>
@@ -248,8 +249,8 @@ const DoctorSchedule = () => {
                 <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
-                      <p className="font-semibold text-blue-600">{appointment.time}</p>
-                      <p className="text-sm text-gray-500">{appointment.date}</p>
+                      <p className="font-semibold text-blue-600">{formatTimeToIST(appointment.time)}</p>
+                      <p className="text-sm text-gray-500">{formatDateToIST(appointment.date)}</p>
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{appointment.patient_name}</h4>

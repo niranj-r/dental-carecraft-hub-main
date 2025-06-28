@@ -100,9 +100,18 @@ def appointments():
             if request.method == 'GET':
                 patient_id = request.args.get('patient_id')
                 if patient_id:
-                    cursor.execute('SELECT * FROM appointments WHERE patient_id=%s', (patient_id,))
+                    cursor.execute('''
+                        SELECT a.*, d.name as doctor_name 
+                        FROM appointments a 
+                        LEFT JOIN doctors d ON a.doctor_id = d.id 
+                        WHERE a.patient_id=%s
+                    ''', (patient_id,))
                 else:
-                    cursor.execute('SELECT * FROM appointments')
+                    cursor.execute('''
+                        SELECT a.*, d.name as doctor_name 
+                        FROM appointments a 
+                        LEFT JOIN doctors d ON a.doctor_id = d.id
+                    ''')
                 results = cursor.fetchall()
                 print('Fetched appointments:', results)
                 for row in results:

@@ -26,134 +26,123 @@ const ThreeDModelViewer: React.FC<{ selectedTooth: string; onToothSelect: (tooth
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<any>(null);
   const rendererRef = useRef<any>(null);
+  const sceneRef = useRef<any>(null);
   const cameraRef = useRef<any>(null);
-  const teethRef = useRef<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
     let animationId: number;
-    
-    const loadModel = async () => {
+
+    const createSimple3D = async () => {
       try {
-        setDebugInfo('Starting 3D model load...');
-        
-        // Wait for Three.js to be available
-        if (typeof window === 'undefined' || !window.THREE) {
-          setDebugInfo('Waiting for Three.js to load...');
-          // Wait a bit for Three.js to load
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          if (!window.THREE) {
-            throw new Error('Three.js not available after waiting');
-          }
+        setDebugInfo('Starting 3D creation...');
+
+        // Load Three.js if needed
+        if (!window.THREE) {
+          setDebugInfo('Loading Three.js...');
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
         }
 
-        setDebugInfo('Three.js loaded, creating scene...');
         const THREE = window.THREE;
-        
+        setDebugInfo('Three.js loaded, creating scene...');
+
         // Create scene
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf8fafc);
+        scene.background = new THREE.Color(0x87CEEB);
         sceneRef.current = scene;
-        
+
         // Create camera
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-        camera.position.set(0, 0, 8);
+        camera.position.set(0, 0, 15);
         cameraRef.current = camera;
-        
+
         // Create renderer
-        const renderer = new THREE.WebGLRenderer({ 
-          antialias: true, 
-          alpha: true,
-          preserveDrawingBuffer: true
-        });
-        renderer.setSize(400, 400);
-        renderer.setClearColor(0xf8fafc, 1);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(500, 500);
+        renderer.setClearColor(0x87CEEB, 1);
         rendererRef.current = renderer;
-        
+
+        // Get container
         const container = containerRef.current;
         if (!container) {
           throw new Error('Container not found');
         }
-        
+
         setDebugInfo('Setting up container...');
         container.innerHTML = '';
         container.appendChild(renderer.domElement);
-        
+
         // Add lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
-        
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(10, 10, 5);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        directionalLight.position.set(10, 10, 10);
         scene.add(directionalLight);
-        
+
         setDebugInfo('Creating teeth...');
-        // Create teeth
+
+        // Create a simple mouth shape with teeth
         const teeth = [];
-        const toothGeometry = new THREE.BoxGeometry(0.4, 0.5, 0.3);
-        
-        // Upper teeth positions (right to left)
+        const toothGeometry = new THREE.BoxGeometry(0.8, 1.0, 0.5);
+
+        // Create upper teeth in a semi-circle
         for (let i = 0; i < 8; i++) {
+          const angle = (i - 3.5) * 0.3;
+          const radius = 4;
+          const x = Math.sin(angle) * radius;
+          const y = 2 + Math.cos(angle) * 0.5;
+          const z = Math.cos(angle) * radius;
+
           const tooth = new THREE.Mesh(
-            toothGeometry, 
+            toothGeometry,
             new THREE.MeshLambertMaterial({ color: 0xffffff })
           );
-          tooth.position.set((i - 3.5) * 0.5, 1.5, 0);
+          tooth.position.set(x, y, z);
+          tooth.rotation.y = angle;
           tooth.userData = { toothId: `Tooth_${11 + i}` };
           teeth.push(tooth);
           scene.add(tooth);
         }
-        
+
+        // Create lower teeth in a semi-circle
         for (let i = 0; i < 8; i++) {
+          const angle = (i - 3.5) * 0.3;
+          const radius = 4;
+          const x = Math.sin(angle) * radius;
+          const y = -2 - Math.cos(angle) * 0.5;
+          const z = Math.cos(angle) * radius;
+
           const tooth = new THREE.Mesh(
-            toothGeometry, 
+            toothGeometry,
             new THREE.MeshLambertMaterial({ color: 0xffffff })
           );
-          tooth.position.set((i - 3.5) * 0.5, 2.2, 0);
-          tooth.userData = { toothId: `Tooth_${21 + i}` };
-          teeth.push(tooth);
-          scene.add(tooth);
-        }
-        
-        // Lower teeth positions (left to right)
-        for (let i = 0; i < 8; i++) {
-          const tooth = new THREE.Mesh(
-            toothGeometry, 
-            new THREE.MeshLambertMaterial({ color: 0xffffff })
-          );
-          tooth.position.set((i - 3.5) * 0.5, -1.5, 0);
+          tooth.position.set(x, y, z);
+          tooth.rotation.y = angle;
           tooth.userData = { toothId: `Tooth_${31 + i}` };
           teeth.push(tooth);
           scene.add(tooth);
         }
-        
-        for (let i = 0; i < 8; i++) {
-          const tooth = new THREE.Mesh(
-            toothGeometry, 
-            new THREE.MeshLambertMaterial({ color: 0xffffff })
-          );
-          tooth.position.set((i - 3.5) * 0.5, -2.2, 0);
-          tooth.userData = { toothId: `Tooth_${41 + i}` };
-          teeth.push(tooth);
-          scene.add(tooth);
-        }
-        
-        teethRef.current = teeth;
-        
+
         // Add click event
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        
+
         const onMouseClick = (event: MouseEvent) => {
           const rect = renderer.domElement.getBoundingClientRect();
           mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
           mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-          
+
           raycaster.setFromCamera(mouse, camera);
           const intersects = raycaster.intersectObjects(teeth);
-          
+
           if (intersects.length > 0) {
             const clickedTooth = intersects[0].object;
             if (clickedTooth.userData.toothId) {
@@ -161,40 +150,46 @@ const ThreeDModelViewer: React.FC<{ selectedTooth: string; onToothSelect: (tooth
             }
           }
         };
-        
+
         renderer.domElement.addEventListener('click', onMouseClick);
-        
+
         setDebugInfo('Starting animation...');
+
         // Animation loop
         const animate = () => {
           if (!mounted) return;
           animationId = requestAnimationFrame(animate);
-          
+
           // Update tooth colors based on selection
           teeth.forEach(tooth => {
             const material = tooth.material as any;
             if (tooth.userData.toothId === selectedTooth) {
-              material.color.setHex(0x7D799F);
+              material.color.setHex(0xFF6B6B); // Red for selected
             } else {
-              material.color.setHex(0xffffff);
+              material.color.setHex(0xffffff); // White for unselected
             }
           });
-          
+
+          // Rotate the entire scene slowly
+          scene.rotation.y += 0.01;
+
           renderer.render(scene, camera);
         };
-        
+
         animate();
         setModelLoaded(true);
         setDebugInfo('3D model loaded successfully!');
-        
+
         // Cleanup
         return () => {
           mounted = false;
           if (animationId) {
             cancelAnimationFrame(animationId);
           }
-          renderer.domElement.removeEventListener('click', onMouseClick);
-          renderer.dispose();
+          if (renderer && renderer.domElement) {
+            renderer.domElement.removeEventListener('click', onMouseClick);
+            renderer.dispose();
+          }
         };
       } catch (err) {
         if (mounted) {
@@ -204,44 +199,55 @@ const ThreeDModelViewer: React.FC<{ selectedTooth: string; onToothSelect: (tooth
         }
       }
     };
-    
-    loadModel();
+
+    createSimple3D();
+
+    return () => {
+      mounted = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
   }, [selectedTooth, onToothSelect]);
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64 text-red-500">
-        <div className="text-center">
-          <p>Failed to load 3D model: {error}</p>
-          <p className="text-sm text-gray-500 mt-2">Debug: {debugInfo}</p>
-          <p className="text-sm text-gray-500 mt-2">Please try refreshing the page</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!modelLoaded) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="text-gray-500">Loading 3D model...</div>
-          <div className="text-xs text-gray-400 mt-2">{debugInfo}</div>
+      <div className="flex flex-col items-center justify-center h-96 bg-gray-100 rounded-lg">
+        <div className="text-red-600 text-center">
+          <p className="text-lg font-medium mb-2">3D Model Error</p>
+          <p className="text-sm">{error}</p>
+          <p className="text-xs text-gray-500 mt-2">Debug: {debugInfo}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-64 flex flex-col items-center">
+    <div className="flex flex-col items-center justify-center">
+      <div className="mb-4 text-center">
+        <p className="text-sm text-gray-600 mb-2">Click on a tooth to select it</p>
+        {debugInfo && (
+          <p className="text-xs text-blue-600">{debugInfo}</p>
+        )}
+      </div>
+      
       <div 
-        ref={containerRef}
-        className="border rounded-lg overflow-hidden bg-gray-50 w-full h-full flex items-center justify-center"
-        style={{ minHeight: '400px' }}
-      ></div>
-      <div className="mt-4 text-sm text-gray-600 text-center">
-        <p>Click on any tooth to select it</p>
-        <p>Selected: {selectedTooth || 'None'}</p>
-        <p className="text-xs text-gray-400 mt-1">{debugInfo}</p>
+        ref={containerRef} 
+        className="w-[500px] h-[500px] bg-sky-200 border-2 border-gray-300 rounded-lg flex items-center justify-center"
+        style={{ minHeight: '500px' }}
+      >
+        {!modelLoaded && (
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Loading 3D model...</p>
+          </div>
+        )}
+      </div>
+      
+      <div className="mt-4 text-center">
+        <p className="text-sm text-gray-600">
+          {selectedTooth ? `Selected: ${selectedTooth}` : 'No tooth selected'}
+        </p>
       </div>
     </div>
   );
@@ -291,7 +297,7 @@ const FallbackToothDiagram: React.FC<{ selectedTooth: string; onToothSelect: (to
   ];
 
   return (
-    <div className="relative w-full h-64">
+    <div className="relative w-full h-96">
       {/* Mouth outline */}
       <div className="absolute inset-4 border-4 border-gray-300 rounded-full bg-white opacity-50"></div>
       
@@ -299,9 +305,9 @@ const FallbackToothDiagram: React.FC<{ selectedTooth: string; onToothSelect: (to
       {teeth.map((tooth) => (
         <button
           key={tooth.id}
-          className={`absolute w-6 h-8 rounded-sm border-2 transition-all duration-200 hover:scale-110 ${
+          className={`absolute w-8 h-10 rounded-sm border-2 transition-all duration-200 hover:scale-110 ${
             selectedTooth === tooth.id
-              ? 'bg-purple-500 border-purple-600 text-white'
+              ? 'bg-red-500 border-red-600 text-white'
               : 'bg-white border-gray-300 hover:bg-blue-50 hover:border-blue-300'
           }`}
           style={tooth.position}
@@ -357,7 +363,7 @@ const ThreeDModelModal: React.FC<ThreeDModelModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>3D Tooth Selection</span>
@@ -395,7 +401,7 @@ const ThreeDModelModal: React.FC<ThreeDModelModalProps> = ({
             </div>
           </div>
           
-          <div className="border rounded-lg p-4 bg-gray-50" style={{ minHeight: '500px' }}>
+          <div className="border rounded-lg p-4 bg-gray-50 flex justify-center" style={{ minHeight: '600px' }}>
             {use3D ? (
               <ThreeDModelViewer selectedTooth={selectedTooth} onToothSelect={onToothSelect} />
             ) : (

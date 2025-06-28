@@ -58,17 +58,20 @@ const ToothDiagram: React.FC<ToothDiagramProps> = ({ onToothSelect, selectedToot
         <CardTitle>Click on the affected tooth</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full h-96 bg-gradient-to-b from-pink-50 to-pink-100 rounded-lg border-2 border-gray-200">
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-full">
-              <div className="text-gray-500">Loading 3D model...</div>
-            </div>
-          }>
-            <ThreeScene selectedTooth={selectedTooth} onToothSelect={onToothSelect} />
-          </Suspense>
+        <div className="space-y-4">
+          {/* Tooth Diagram */}
+          <div className="relative w-full h-96 bg-gradient-to-b from-pink-50 to-pink-100 rounded-lg border-2 border-gray-200">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-full">
+                <div className="text-gray-500">Loading 3D model...</div>
+              </div>
+            }>
+              <ThreeScene selectedTooth={selectedTooth} onToothSelect={onToothSelect} />
+            </Suspense>
+          </div>
           
-          {/* Instructions */}
-          <div className="absolute bottom-4 left-4 right-4 bg-white bg-opacity-90 rounded-lg p-3 text-sm">
+          {/* Instructions - positioned below the diagram */}
+          <div className="bg-white bg-opacity-95 rounded-lg p-3 text-sm border border-gray-200">
             <p className="text-gray-700 mb-2">
               <strong>Instructions:</strong>
             </p>

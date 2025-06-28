@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronRight, Clock, User, Box } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import ToothDiagram from '@/components/patient/ToothDiagram';
-import ThreeDModelModal from '@/components/patient/ThreeDModelModal';
 import SymptomChatbot from '@/components/patient/SymptomChatbot';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { getCurrentISTDate } from '@/lib/utils';
 
 const BookAppointment = () => {
   const [step, setStep] = useState(1);
@@ -21,7 +21,6 @@ const BookAppointment = () => {
   const [notes, setNotes] = useState('');
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
-  const [show3DModal, setShow3DModal] = useState(false);
 
   const generateTimeSlots = () => {
     const slots = [];
@@ -61,7 +60,12 @@ const BookAppointment = () => {
 
   const getBookedTimes = () => {
     if (!selectedDate || !selectedDoctor) return [];
-    const dateStr = selectedDate.toISOString().split('T')[0];
+    const dateStr = selectedDate.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).split('/').reverse().join('-');
     return appointments
       .filter(a => a.date === dateStr && a.doctor === selectedDoctor)
       .map(a => a.time);
@@ -86,7 +90,12 @@ const BookAppointment = () => {
         toast.error('Please select a date and time.');
         return;
       }
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = selectedDate.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).split('/').reverse().join('-');
       const payload = {
         patient_id: user.patient_id,
         doctor_id: doctor.id,
@@ -221,17 +230,8 @@ const BookAppointment = () => {
           {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div>
                   <Label className="text-base font-medium">Select Affected Tooth</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShow3DModal(true)}
-                    className="flex items-center space-x-2"
-                  >
-                    <Box className="h-4 w-4" />
-                    <span>3D View</span>
-                  </Button>
                 </div>
                 <ToothDiagram onToothSelect={setSelectedTooth} selectedTooth={selectedTooth} />
                 {selectedTooth && (
@@ -250,7 +250,10 @@ const BookAppointment = () => {
                   </div>
                 )}
               </div>
+              
+              {/* Symptom chatbot */}
               <SymptomChatbot onSymptomsUpdate={setSymptoms} />
+              
               <div>
                 <Label htmlFor="notes" className="text-base font-medium">Additional Notes (Optional)</Label>
                 <Input
@@ -324,18 +327,10 @@ const BookAppointment = () => {
           </Button>
         ) : (
           <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
-            Book Appointment 🎉
+            Book Appointment
           </Button>
         )}
       </div>
-
-      {/* 3D Model Modal */}
-      <ThreeDModelModal
-        isOpen={show3DModal}
-        onClose={() => setShow3DModal(false)}
-        selectedTooth={selectedTooth}
-        onToothSelect={setSelectedTooth}
-      />
     </div>
   );
 };

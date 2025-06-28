@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Download, User } from 'lucide-react';
+import { Calendar, Clock, Download, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
+import { formatDateToIST, formatTimeToIST } from '@/lib/utils';
 
 const AppointmentHistory = () => {
   const [appointments, setAppointments] = useState([]);
@@ -104,15 +105,15 @@ const AppointmentHistory = () => {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <Calendar className="h-4 w-4" />
-                    <span>{appointment.date}</span>
+                    <span>{formatDateToIST(appointment.date)}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <Clock className="h-4 w-4" />
-                    <span>{appointment.time}</span>
+                    <span>{formatTimeToIST(appointment.time)}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <User className="h-4 w-4" />
-                    <span>{appointment.doctor}</span>
+                    <span>{appointment.doctor_name || `(ID: ${appointment.doctor_id})`}</span>
                   </div>
                 </div>
                 

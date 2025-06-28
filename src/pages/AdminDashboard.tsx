@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, UserCheck, UserX, Clock, CheckCircle, XCircle, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { formatDateToIST } from '@/lib/utils';
 
 interface PendingDoctor {
   id: number;
@@ -285,7 +286,7 @@ const AdminDashboard = () => {
 
                     <div className="flex items-center justify-between pt-4 border-t">
                       <p className="text-xs text-gray-500">
-                        Applied on: {new Date(doctor.created_at).toLocaleDateString()}
+                        Applied on: {formatDateToIST(doctor.created_at)}
                       </p>
                       <div className="flex space-x-2">
                         <Button

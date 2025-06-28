@@ -6,6 +6,7 @@ import { Calendar, Users, Clock, AlertTriangle, CheckCircle, FileText, Zap } fro
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SmartScheduler from '@/components/doctor/SmartScheduler';
+import { formatDateToIST, formatTimeToIST } from '@/lib/utils';
 
 const DoctorDashboard = () => {
   const [todayStats, setTodayStats] = useState({ totalAppointments: 0, completed: 0, pending: 0, urgent: 0 });
@@ -155,7 +156,7 @@ const DoctorDashboard = () => {
                 <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
-                      <p className="font-semibold text-blue-600">{appointment.time}</p>
+                      <p className="font-semibold text-blue-600">{formatTimeToIST(appointment.time)}</p>
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{appointment.patient_name}</h4>
